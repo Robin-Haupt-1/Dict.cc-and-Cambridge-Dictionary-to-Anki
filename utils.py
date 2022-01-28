@@ -144,21 +144,3 @@ def update_tampermonkey_list():
             new_json[en] = {"de": de, "id": card.id}
 
         file.write(json.dumps(new_json))
-
-
-def unsuspend_new_cards():
-    """unsuspend ew that have been imported 3 days ago or earlier and had been automatically suspended"""
-    # reactivate common and rare words after different time intervals
-    normal_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"deck:All::Audio::Sprachen::🇺🇸 Englisch::_New" is:suspended is:new')]
-    normal_cards = [card for card in normal_cards if datetime.datetime.now().timestamp() - card.mod > 3 * 86400]
-    rare_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"deck:All::Audio::Sprachen::🇺🇸 Englisch::_New (rare)" is:suspended is:new')]
-    rare_cards = [card for card in rare_cards if datetime.datetime.now().timestamp() - card.mod > 6 * 86400]
-
-    if not (normal_cards or rare_cards):
-        return
-
-    log(f"{len(normal_cards)} new common and {len(rare_cards)} new rare cards to unsuspend")
-    log(f"Card ids: {normal_cards + rare_cards}")
-    for card in normal_cards + rare_cards:
-        card.queue = anki.consts.QUEUE_TYPE_NEW
-        card.flush()

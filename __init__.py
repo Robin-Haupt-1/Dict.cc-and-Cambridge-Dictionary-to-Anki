@@ -5,7 +5,6 @@ from .utils import *
 from .main import ImportEwFromCambridge
 
 import_task = None
-unsuspend_timer = None
 
 
 def start_import():
@@ -23,9 +22,6 @@ def init():
     options_action.triggered.connect(lambda _, o=mw: update_tampermonkey_list())
     mw.form.menuTools.addAction(options_action)
     # start timer to unsuspend new cards
-    #unsuspend_new_cards()
-    #global unsuspend_timer
-    #unsuspend_timer = mw.progress.timer(3600000, unsuspend_new_cards, True)
     update_tampermonkey_list()
 
 
