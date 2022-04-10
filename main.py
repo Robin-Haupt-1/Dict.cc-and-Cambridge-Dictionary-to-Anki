@@ -12,7 +12,6 @@ from .utils import all_imported_words
 from anki.consts import *
 
 
-
 class ImportEwFromCambridge:
     def __init__(self):
         # Initialize instances
@@ -24,7 +23,7 @@ class ImportEwFromCambridge:
 
         # read new ew
         with os.scandir(EW_FOLDER) as files:
-            files=[file for file in files]
+            files = [file for file in files]
             files = sorted(files, key=lambda x: x.name)
 
             words = [open(file.path, "r", encoding="utf-8").read() for file in files]
@@ -61,14 +60,20 @@ class ImportEwFromCambridge:
             else:
                 grouped_words[english] = [german]
 
-
         for english, german in grouped_words.items():
+            # detect if note is meant to have reverse field set
+            reverse = False
+            for i, w in enumerate(german):
+                if w[-2:] == "-r":
+                    reverse = True
+                    # Chop -r reverse marker off words
+                    german[i] = german[i][:-2].strip()
             log(f"Importing {english} - {german}")
 
             scrubbed = self.scrubbing[english]
 
             prevalence = int(get_phrasefinder(scrubbed) / 1000)
-            fields = {"Englisch": english, "Bild": "", "Audio": "", "IPA": "", "Häufigkeit": str(prevalence).zfill(6), "Englisch scrubbed": scrubbed}
+            fields = {"Englisch": english, "Bild": "", "Audio": "", "IPA": "", "Häufigkeit": str(prevalence).zfill(6), "Englisch scrubbed": scrubbed, "reverse": "Activated in import" if reverse else ""}
 
             # Assign german words to their fields
             for i, x in enumerate(german[:10]):
