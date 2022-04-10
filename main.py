@@ -121,10 +121,6 @@ class ImportEwFromCambridge:
                 if name in fields:
                     note[name] = fields[name]
             mw.col.addNote(note)
-            continue
-            for card in note.cards():
-                card.queue = anki.consts.QUEUE_TYPE_SUSPENDED
-                card.flush()
 
         tooltip("All words imported!")
         log("All words imported!", color="green")
