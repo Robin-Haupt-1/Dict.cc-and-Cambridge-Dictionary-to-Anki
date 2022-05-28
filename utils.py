@@ -123,11 +123,11 @@ def all_imported_words():
 
 def update_tampermonkey_list():
     """Refresh the list of all imported words that the tampermonkey script reads"""
-    with open(r"/opt/lampp/htdocs/imported dict.cc.txt", "w+", encoding="utf-8") as file:
+    with open(r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer/imported dict.cc.txt", "w+", encoding="utf-8") as file:
         file.write("\n".join(all_imported_words()))
 
     # update the json of all ew anki cards for forgetting them through dict.cc Tampermonkey
-    with open(r"/opt/lampp/htdocs/imported dict.cc card.json", "w+", encoding="utf-8") as file:
+    with open(r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer/imported dict.cc card.json", "w+", encoding="utf-8") as file:
         new_json = {}
         old_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc)" ')]
         new_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc) (new)"  ')]
@@ -143,4 +143,4 @@ def update_tampermonkey_list():
             de = "   /   ".join(de)
             new_json[en] = {"de": de, "id": card.id}
 
-        file.write(json.dumps(new_json))
+        file.write(json.dumps(new_json, indent=2))
