@@ -133,6 +133,7 @@ def update_tampermonkey_list():
         new_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc) (new)"  ')]
         for card in old_cards + new_cards:
             note = card.note()
+            cards=[card.id for card in note.cards()]
             en = ""
             de = []
             for (name, value) in note.items():
@@ -141,6 +142,6 @@ def update_tampermonkey_list():
                 if name.startswith("Deutsch") and value and "<img" not in value:
                     de.append(value)
             de = "   /   ".join(de)
-            new_json[en] = {"de": de, "id": card.id}
+            new_json[en] = {"de": de, "ids": cards}
 
         file.write(json.dumps(new_json, indent=2))
