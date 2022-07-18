@@ -1,0 +1,107 @@
+// ==UserScript==
+// @name         dict.cc - list imported words (with json)
+// @description  When searching for a term, display underneath the search bar all the words i've already added to Anki
+// @namespace    http://tampermonkey.net/
+// @version      0.2
+// @require http://code.jquery.com/jquery-3.4.1.min.js
+// @match      https://www.dict.cc/?s=*
+// @grant        none
+// ==/UserScript==
+
+function addJQuery(callback) {
+    var script = document.createElement("script");
+    script.setAttribute("src", "//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js");
+    script.addEventListener('load', function () {
+        var script = document.createElement("script");
+        script.textContent = "window.jQ=jQuery.noConflict(true);(" + callback.toString() + ")();";
+        document.body.appendChild(script);
+    }, false);
+    document.body.appendChild(script);
+}
+
+
+function main() {
+
+    $(document).ready(function () {
+        async function forgetCard(id){
+            function ankiconnect(action, version, params={}) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.addEventListener('error', () => reject('failed to issue request'));
+                xhr.addEventListener('load', () => {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (Object.getOwnPropertyNames(response).length != 2) {
+                            throw 'response has an unexpected number of fields';
+                        }
+                        if (!response.hasOwnProperty('error')) {
+                            throw 'response is missing required error field';
+                        }
+                        if (!response.hasOwnProperty('result')) {
+                            throw 'response is missing required result field';
+                        }
+                        if (response.error) {
+                            throw response.error;
+                        }
+                        resolve(response.result);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+
+                xhr.open('POST', 'http://127.0.0.1:8765');
+                xhr.send(JSON.stringify({action, version, params}));
+            });
+        }
+
+            console.log("forgetting "+String(id))
+
+        let promise= ankiconnect('forgetCards', 6, {cards: [id]});
+            promise.then(()=>{console.log("Card forgotten")},()=>{alert("Error forgetting card")})
+        }
+
+        var script = document.createElement("script");
+        script.textContent = forgetCard.toString();
+        document.body.appendChild(script);
+        $.ajax({
+            url: 'http://127.0.0.1:5001/imported_ew_css',
+            success: function (css) {
+                var head, style;
+                head = document.getElementsByTagName('head')[0];
+                if (!head) { return; }
+                style = document.createElement('style');
+                style.type = 'text/css';
+                style.innerHTML = css.replace(/;/g, ' !important;');
+                head.appendChild(style);
+                return
+
+            },
+            error:function(jqXHR,  textStatus,  errorThrown){
+            $(".subnav").after(`<div style='color:red' id='mydiv'>Can't connect to server (${textStatus}, ${errorThrown})</div>`);}
+        });
+
+        var search_text = $("#sinp").val()
+        $.ajax({
+            url: 'http://127.0.0.1:5001/imported_ew_json',
+            success: function (data) {
+                data=JSON.parse(data)
+                let en=Object.keys(data)
+                //alert(en)
+                $(".subnav").after("<div  id='mydiv'></div>");
+                en.forEach(en=>{
+                    if (en.search(search_text.toLowerCase()) != -1) {
+                        alert(JSON.stringify(data[en]))
+                        let onclick=data[en]["ids"].map(id=>`forgetCard("${id}")`).join(";")
+                        $("#mydiv").append("<div class='ew-entry' >"+en + "    ~    "+data[en]["de"] +"<div class='forget' onclick='"+onclick+"'>X</div></div>");
+                    }
+                })
+            }
+        });
+
+    });
+}
+
+// load jQuery and execute the main function
+addJQuery(main);
+
+
