@@ -14,6 +14,9 @@ from anki.consts import *
 
 class ImportEwFromCambridge:
     def __init__(self):
+        # create list of files to be deleted after import finishes
+        self.delete_crawled_ew = os.scandir(EW_FOLDER)
+
         # Initialize instances
         self.cambridge_dict = None  # html of cambridge pages
         self.words = None  # words after user has corrected them
@@ -138,4 +141,4 @@ class ImportEwFromCambridge:
         update_tampermonkey_list()
 
         # empty the folder that holds the crawled words before they get imported
-        [os.remove(file.path) for file in os.scandir(EW_FOLDER)]
+        [os.remove(file.path) for file in self.delete_crawled_ew]
