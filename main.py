@@ -64,19 +64,29 @@ class ImportEwFromCambridge:
                 grouped_words[english] = [german]
 
         for english, german in grouped_words.items():
-            # detect if note is meant to have reverse field set
-            reverse = False
+
+            # detect if note is meant to be marked as needing an image
+            needs_image = False
+
             for i, w in enumerate(german):
-                if w[-2:] == "-r":
-                    reverse = True
-                    # Chop -r reverse marker off words
-                    german[i] = german[i][:-2].strip()
+                if w[-1:] == "+":
+                    needs_image = True
+                    # Chop + needs image marker off word
+                    german[i] = german[i][:-1].strip()
+
+            # detect if note is meant to have reverse field set
+            reverse = True
+            for i, w in enumerate(german):
+                if w[-1:] == "-":
+                    reverse = False
+                    # Chop - no reverse marker off word
+                    german[i] = german[i][:-1].strip()
             log(f"Importing {english} - {german}")
 
             scrubbed = self.scrubbing[english]
 
             prevalence = int(get_phrasefinder(scrubbed) / 1000)
-            fields = {"Englisch": english, "Bild": "", "Audio": "", "IPA": "", "Häufigkeit": str(prevalence).zfill(6), "Englisch scrubbed": scrubbed, "reverse": "Activated in import" if reverse else ""}
+            fields = {"Englisch": english, "Bild": "needsimage" if needs_image else "", "Audio": "", "IPA": "", "Häufigkeit": str(prevalence).zfill(6), "Englisch scrubbed": scrubbed, "reverse": "Activated in import" if reverse else ""}
 
             # Assign german words to their fields
             for i, x in enumerate(german[:10]):
