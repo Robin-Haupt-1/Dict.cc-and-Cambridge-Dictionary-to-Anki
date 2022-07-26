@@ -121,7 +121,18 @@ class ImportEwFromCambridge:
                     fields["IPA"] = ipa
 
             else:
-                log(f"No Cambridge definition found for {scrubbed} ({english}).", color="red")
+                log(f"No Cambridge definition found for {scrubbed} ({english})", color="red")
+                log("Downloading TTS instead...")
+
+                try:
+                    audio_path = os.path.join(MEDIA_FOLDER, f"google-tts-{scrubbed}.ogg")
+                    google_tts = requests.get(f"http://localhost:5231/get_ogg_bytes?text={urllib.parse.quote(scrubbed)}&lang=en-US").content
+                    with open(audio_path, "wb") as file:
+                        file.write(google_tts)
+                        fields["Audio"] = f'[sound:google-tts-{scrubbed}.ogg]'
+
+                except Exception as e:
+                    print(e)
 
             # Create the new notes
             # Set the right deck (according to how common the word is) and model
