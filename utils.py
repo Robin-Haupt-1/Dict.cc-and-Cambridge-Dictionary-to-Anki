@@ -13,7 +13,7 @@ from aqt import mw
 import anki.consts
 import json
 from aqt.qt import QTimer
-
+from .constants import LIST_IDENTIFIER
 
 class DebounceTimer:
     timer: QTimer = None
@@ -123,11 +123,11 @@ def all_imported_words():
 
 def update_tampermonkey_list():
     """Refresh the list of all imported words that the tampermonkey script reads"""
-    with open(r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer/imported dict.cc.txt", "w+", encoding="utf-8") as file:
+    with open(rf"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer/imported dict.cc {LIST_IDENTIFIER}.txt", "w+", encoding="utf-8") as file:
         file.write("\n".join(all_imported_words()))
 
     # update the json of all ew anki cards for forgetting them through dict.cc Tampermonkey
-    with open(r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer/imported dict.cc card.json", "w+", encoding="utf-8") as file:
+    with open(fr"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer/imported dict.cc card {LIST_IDENTIFIER}.json", "w+", encoding="utf-8") as file:
         new_json = {}
         old_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc)" ')]
         new_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc) (new)"  ')]
