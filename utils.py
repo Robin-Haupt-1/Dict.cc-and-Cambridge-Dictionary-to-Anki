@@ -15,6 +15,7 @@ import json
 from aqt.qt import QTimer
 from .constants import LIST_IDENTIFIER
 
+
 class DebounceTimer:
     timer: QTimer = None
 
@@ -28,7 +29,7 @@ class DebounceTimer:
     def trigger(self):
         if self.timer:
             self.timer.stop()
-        self.timer = mw.progress.timer(self.delay, self.task, False)
+        self.timer = mw.progress.timer(self.delay, self.task, False, parent=mw)
 
 
 def log(text, start=None, end="\n", color="cyan", start_color="cyan"):
@@ -133,7 +134,7 @@ def update_tampermonkey_list():
         new_cards = [mw.col.get_card(card_id) for card_id in mw.col.find_cards('"note:\_\_English (from Dict.cc) (new)"  ')]
         for card in old_cards + new_cards:
             note = card.note()
-            cards=[card.id for card in note.cards()]
+            cards = [card.id for card in note.cards()]
             en = ""
             de = []
             for (name, value) in note.items():
