@@ -1,13 +1,13 @@
 from aqt.qt import QDialog, QGridLayout, QTextEdit, QScrollBar, QPushButton
-from PyQt5.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
-from PyQt5.QtCore import Qt
-from PyQt5 import QtGui
+from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
+from PyQt6.QtCore import Qt
+from PyQt6 import QtGui
 from aqt.utils import showInfo
 from .utils import scrub_word, load_url, wait_for_internet_connection, log, get_phrasefinder, DebounceTimer
 from aqt import mw
 from .constants import *
 from math import ceil
-from  .util import cambridge
+from .util import cambridge
 
 numbers = "\n".join([str(x) for x in range(100)])
 
@@ -242,20 +242,21 @@ class CorrectScrubbingOutput(QDialog):
         self.set_line_height(self.phrasefinder_rank)
         self.set_line_height(self.scrubbed)
 
-        self.set_line_height(self.cambridge_ipa, 125)
+        self.set_line_height(self.cambridge_ipa)
 
         # scroll all textedits to the correct position again
         self.on_scroll(self.scrubbed.verticalScrollBar().value())
 
-    def set_line_height(self, textedit: QTextEdit, height: int = 120):
+    def set_line_height(self, textedit: QTextEdit, height: int = 40):
         """Set the line height of given QTextEdit by merging it with a QTextBlockFormat"""
         # Reference: https://stackoverflow.com/questions/10250533/set-line-spacing-in-qtextedit
 
         blockFmt = QTextBlockFormat()
-        blockFmt.setLineHeight(height, QTextBlockFormat.ProportionalHeight)
+        blockFmt.setLineHeight(height, 2)  # 2 = LineHeightTypes.FixedHeight
+
         theCursor = textedit.textCursor()
         theCursor.clearSelection()
-        theCursor.select(QTextCursor.Document)
+        theCursor.select(QTextCursor.SelectionType.Document)
         theCursor.mergeBlockFormat(blockFmt)
 
     def get_ipa(self, word: str):

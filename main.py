@@ -1,7 +1,6 @@
 import datetime
 from aqt.qt import QAction
 from aqt.utils import showInfo, tooltip
-
 from .constants import *
 from .utils import *
 from .edit_words_dialog import EditNewWordsDialog
@@ -47,7 +46,6 @@ class ImportEwFromCambridge:
         self.scrubbing = scrubbing
         self.cambridge_dict = cambridge_dict
         self.words = words
-
         self.create_cards()
 
     def create_cards(self):
@@ -119,17 +117,17 @@ class ImportEwFromCambridge:
 
                     # Set field values
                     fields["IPA"] = ipa
-
             else:
+                
                 log(f"No Cambridge definition found for {scrubbed} ({english})", color="red")
                 log("Downloading TTS instead...")
 
                 try:
                     audio_path = os.path.join(MEDIA_FOLDER, f"google-tts-{scrubbed}.ogg")
-                    google_tts = requests.get(f"http://localhost:5231/get_ogg_bytes?text={urllib.parse.quote(scrubbed)}&lang=en-US").content
+                    google_tts = requests.get(f"http://localhost:5231/get_ogg_bytes_aws?text={urllib.parse.quote(scrubbed)}&lang=en-US").content
                     with open(audio_path, "wb") as file:
                         file.write(google_tts)
-                        fields["Audio"] = f'[sound:google-tts-{scrubbed}.ogg]'
+                        fields["Audio"] = f'[sound:aws-tts-{scrubbed}.ogg]'
 
                 except Exception as e:
                     print(e)
