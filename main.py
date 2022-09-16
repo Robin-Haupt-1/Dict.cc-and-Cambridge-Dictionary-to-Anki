@@ -84,7 +84,8 @@ class ImportEwFromCambridge:
             scrubbed = self.scrubbing[english]
 
             prevalence = int(get_phrasefinder(scrubbed) / 1000)
-            fields = {"Englisch": english, "Bild": "needsimage" if needs_image else "", "Audio": "", "IPA": "", "Häufigkeit": str(prevalence).zfill(6), "Englisch scrubbed": scrubbed, "reverse": "Activated in import" if reverse else ""}
+            fields = {"Englisch": english, "Bild": "needsimage" if needs_image else "", "Audio": "", "IPA": "", "Häufigkeit": str(prevalence).zfill(6), "Englisch scrubbed": scrubbed,
+                      "reverse card disabled": "disabled during import" if not reverse else ""}
 
             # Assign german words to their fields
             for i, x in enumerate(german[:10]):
@@ -117,8 +118,8 @@ class ImportEwFromCambridge:
 
                     # Set field values
                     fields["IPA"] = ipa
+
             else:
-                
                 log(f"No Cambridge definition found for {scrubbed} ({english})", color="red")
                 log("Downloading TTS instead...")
 
