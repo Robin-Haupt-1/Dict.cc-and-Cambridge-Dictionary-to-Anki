@@ -3,7 +3,7 @@ from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
 from PyQt6.QtCore import Qt
 from PyQt6 import QtGui
 from aqt.utils import showInfo
-from .utils import scrub_word, load_url, wait_for_internet_connection, log, get_phrasefinder, DebounceTimer
+from .utils import load_url, wait_for_internet_connection, log, DebounceTimer
 from aqt import mw
 from .constants import *
 from math import ceil
@@ -114,9 +114,9 @@ class CorrectScrubbingOutput(QDialog):
         self.scrubbed_words = [scrub_word(x) for x in self.unique_words]
         self.cambridge_available_cache = {}  # for every scrubbed term, contains either the cambridge html or 'false' if term can't be found on cambridge
         self.phrasefinder_cache = {}
-        self.look_up_scrubbed_timer = None  # timer to look up newly entered corrected versions of scrubbed terms on cambridge dictionary. timeout so as to not make the program freeze after every keystroke.
 
-        self.look_up_scrubbed_timer2 = DebounceTimer(self.look_up_scrubbed, 700)
+        self.look_up_scrubbed_timer2 = DebounceTimer(self.look_up_scrubbed,
+                                                     700)  # timer to look up newly entered corrected versions of scrubbed terms on cambridge dictionary. timeout so as to not make the program freeze after every keystroke.
 
         # Set up font for textedits
         font = QFont()
@@ -185,16 +185,11 @@ class CorrectScrubbingOutput(QDialog):
         self.setMinimumHeight(1000)
         self.look_up_scrubbed()
 
-        self.triage()
-
     def on_scroll(self, position):
         """adjust the scroll position of cambridge_available and original_words and phrasefinder rank to keep synchronized with 'scrubbed' textedit"""
         self.original_words.verticalScrollBar().setValue(position)
         self.cambridge_ipa.verticalScrollBar().setValue(position)
         self.phrasefinder_rank.verticalScrollBar().setValue(position)
-
-    def triage(self):
-        """TODO put the words that need the most attention to the top of the list"""
 
     def scrubbed_changed(self):
         """Whenever user edits scrubbed terms, (re)start timer to look them up in 0.7 seconds"""

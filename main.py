@@ -7,14 +7,16 @@ from .edit_words_dialog import EditNewWordsDialog
 from aqt import mw
 from aqt import gui_hooks
 from datetime import datetime
-from .utils import all_imported_words
 from anki.consts import *
 
 
 class ImportEwFromCambridge:
-    def __init__(self):
+    profile: Profile
+
+    def __init__(self, profile: Profile):
+        self.profile = profile
         # create list of files to be deleted after import finishes
-        self.delete_crawled_ew = os.scandir(EW_FOLDER)
+        self.delete_crawled_ew = os.scandir(profile.new_crawled_words_folder)
 
         # Initialize instances
         self.cambridge_dict = None  # html of cambridge pages
