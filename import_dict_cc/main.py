@@ -1,9 +1,9 @@
 import datetime
 from aqt.qt import QAction
 from aqt.utils import showInfo, tooltip
-from .constants import *
-from .utils import *
-from .edit_words_dialog import EditNewWordsDialog
+from constants import *
+from utils import *
+from edit_words_dialog import EditNewWordsDialog
 from aqt import mw
 from aqt import gui_hooks
 from datetime import datetime

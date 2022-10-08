@@ -3,20 +3,34 @@ from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
 from PyQt6.QtCore import Qt
 from PyQt6 import QtGui
 from aqt.utils import showInfo
-from .utils import load_url, wait_for_internet_connection, log, DebounceTimer
+from utils import load_url, wait_for_internet_connection, log, DebounceTimer
 from aqt import mw
-from .constants import *
 from math import ceil
-from .util import cambridge
+from constants import *
+from collections import defaultdict
 
 numbers = "\n".join([str(x) for x in range(100)])
 
 
+def set_line_height(textedit: QTextEdit, height: int = 40):
+    """Set the line height of given QTextEdit by merging it with a QTextBlockFormat"""
+    # Reference: https://stackoverflow.com/questions/10250533/set-line-spacing-in-qtextedit
+
+    blockFmt = QTextBlockFormat()
+    blockFmt.setLineHeight(height, 2)  # 2 = LineHeightTypes.FixedHeight
+
+    theCursor = textedit.textCursor()
+    theCursor.clearSelection()
+    theCursor.select(QTextCursor.SelectionType.Document)
+    theCursor.mergeBlockFormat(blockFmt)
+
+
 class EditNewWordsDialog(QDialog):
-    def __init__(self, parent_class, words):
-        words = words.replace("\t", EDIT_WORDS_SEPERATOR)
+    profile = None
+
+    def __init__(self, profile):
         super(EditNewWordsDialog, self).__init__()
-        self.parent = parent_class
+        self.profile = profile
 
         # set up font
         font = QFont()
@@ -28,20 +42,21 @@ class EditNewWordsDialog(QDialog):
         self.word_groups.setMaximumWidth(40)
         self.word_groups.setText(numbers)
         self.word_groups.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.word_groups_scrollbar: QScrollBar = self.word_groups.verticalScrollBar()
         self.word_groups.setFont(font)
         self.word_groups.setEnabled(False)
 
         # Textedit with new english and german words, seperated by ~
         self.new_words = QTextEdit()
         self.new_words.setLineWrapMode(QTextEdit.NoWrap)
-        self.new_words.setText(words)
-        self.new_words.textChanged.connect(self.words_changed)
+        self.new_words.setText("\n".join([word.unprocessed_string.replace("\t", "       ~       ") for word in profile.words_being_imported_raw]))
         self.new_words.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
         self.new_words_scrollbar: QScrollBar = self.new_words.verticalScrollBar()
-        self.new_words_scrollbar.valueChanged.connect(lambda pos: self.word_groups.verticalScrollBar().setValue(pos))
+        self.new_words_scrollbar.valueChanged.connect(self.on_scroll)
         self.new_words.setFont(font)
-        self.words_changed()
+        self.new_words.textChanged.connect(self.words_changed)
+
+        # self.words_changed()
 
         # Done editing button
         self.done_button = QPushButton()
@@ -61,6 +76,16 @@ class EditNewWordsDialog(QDialog):
         sb = self.new_words.verticalScrollBar()
         sb.setValue(sb.maximum())
 
+        [set_line_height(x) for x in [self.new_words, self.word_groups]]
+
+    def on_scroll(self, position):
+        """adjust the scroll position of cambridge_available and original_words and phrasefinder rank to keep synchronized with 'scrubbed' textedit"""
+
+        [set_line_height(x) for x in [self.new_words, self.word_groups]]
+        self.word_groups.verticalScrollBar().setValue(self.new_words.verticalScrollBar().value())
+        #print(self.new_words.verticalScrollBar().value())
+        #print(position)
+
     def get_words(self):
         return self.new_words.toPlainText().strip()
 
@@ -71,27 +96,34 @@ class EditNewWordsDialog(QDialog):
         word_groups = {}  # all unique words as keys, their number as values
         english_words = [word.split(EDIT_WORDS_SEPERATOR_BASIC)[0].strip() for word in self.get_words().split("\n")]
 
+        # TODO defaultdict
         for english_word in english_words:
             if english_word not in word_groups:
                 word_groups[english_word] = len(word_groups.keys()) + 1
 
         word_group_content = "\n".join(["----" if x % 2 == 0 else "////" for x in [word_groups[y] for y in english_words]])
         self.word_groups.setText(word_group_content)
-
-        self.word_groups.verticalScrollBar().setValue(self.new_words_scrollbar.value())
+        [set_line_height(x) for x in [self.word_groups]]
+        self.word_groups.verticalScrollBar().setValue(self.new_words.verticalScrollBar().value())
 
     def done_(self):
         """pass unique words on to user to verify automated scrubbing output"""
         self.close()
-        # replace ~ and any surrounding whitespace with tabs again
-        words_with_tab = [w.split(EDIT_WORDS_SEPERATOR_BASIC)[0].strip() + "\t" + w.split(EDIT_WORDS_SEPERATOR_BASIC)[1].strip() for w in self.get_words().split("\n")]
-        words = [x.split(EDIT_WORDS_SEPERATOR_BASIC)[0].strip() for x in self.get_words().split("\n")]
-        # remove duplicates this way instead of using set() to preserve order
-        unique_words = []
-        [unique_words.append(x) for x in words if x not in unique_words]
+
+        words_with_translations: dict[str, WordBeingImported] = {}
+        for word in self.get_words().split("\n"):
+            learning, familiar = word.split("~", 1)
+            familiar = familiar.strip()
+            learning = learning.strip()
+
+            if learning not in words_with_translations:
+                words_with_translations[learning] = WordBeingImported(learning=learning, familiar=[])
+            words_with_translations[learning].familiar.append(familiar)
+
+        self.profile.words_being_imported = list(words_with_translations.values())
 
         # show dialog to allow user to correct the scrubbing
-        correct_scrubbed_output_dialog = CorrectScrubbingOutput(self.parent, words_with_tab, unique_words)
+        correct_scrubbed_output_dialog = CorrectScrubbingOutput(self.profile)
         correct_scrubbed_output_dialog.show()
         correct_scrubbed_output_dialog.exec()
 
@@ -100,20 +132,10 @@ class EditNewWordsDialog(QDialog):
 
 
 class CorrectScrubbingOutput(QDialog):
-    def __init__(self, parent_class, words_with_tabs: [str], unique_words: [str]):
-        """
-        :param words_with_tabs: list of words with english and german value seperated by tabs
-        :param unique_words: list of all unique english words
-
-        """
+    def __init__(self, profile):
         super(CorrectScrubbingOutput, self).__init__()
-        self.words_with_tabs = words_with_tabs
-        self.unique_words = unique_words
-        self.parent = parent_class
-
-        self.scrubbed_words = [scrub_word(x) for x in self.unique_words]
-        self.cambridge_available_cache = {}  # for every scrubbed term, contains either the cambridge html or 'false' if term can't be found on cambridge
-        self.phrasefinder_cache = {}
+        self.words_being_reviewed = profile.words_being_imported
+        self.profile = profile
 
         self.look_up_scrubbed_timer2 = DebounceTimer(self.look_up_scrubbed,
                                                      700)  # timer to look up newly entered corrected versions of scrubbed terms on cambridge dictionary. timeout so as to not make the program freeze after every keystroke.
@@ -126,7 +148,7 @@ class CorrectScrubbingOutput(QDialog):
         self.original_words = QTextEdit()
         self.original_words.setLineWrapMode(QTextEdit.NoWrap)
         self.original_words.setMaximumWidth(250)
-        self.original_words.setText("\n".join(self.unique_words))
+        self.original_words.setText("\n".join([word.learning for word in self.profile.words_being_imported]))
         self.original_words.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.original_words.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.original_words.setFont(font)
@@ -136,10 +158,10 @@ class CorrectScrubbingOutput(QDialog):
         self.scrubbed = QTextEdit()
         self.scrubbed.setLineWrapMode(QTextEdit.NoWrap)
         self.scrubbed.setMinimumWidth(250)
-        self.scrubbed.setText(("\n".join(self.scrubbed_words)))
+        self.scrubbed.setText(("\n".join([self.profile.scrub_word(word.learning) for word in self.profile.words_being_imported])))
         self.scrubbed.verticalScrollBar().valueChanged.connect(self.on_scroll)
         self.scrubbed.setFont(font)
-        self.scrubbed.textChanged.connect(self.scrubbed_changed)
+        self.scrubbed.textChanged.connect(lambda: self.look_up_scrubbed_timer2.trigger())
 
         # Textedit indicating whether the term can be found on cambridge dictionary (found IPA if yes, otherwise 'XX')
         self.cambridge_ipa = QTextEdit()
@@ -191,49 +213,17 @@ class CorrectScrubbingOutput(QDialog):
         self.cambridge_ipa.verticalScrollBar().setValue(position)
         self.phrasefinder_rank.verticalScrollBar().setValue(position)
 
-    def scrubbed_changed(self):
-        """Whenever user edits scrubbed terms, (re)start timer to look them up in 0.7 seconds"""
-        # if self.look_up_scrubbed_timer:
-        #   self.look_up_scrubbed_timer.stop()
-
-        # self.look_up_scrubbed_timer = mw.progress.timer(700, self.look_up_scrubbed, False)
-        self.look_up_scrubbed_timer2.trigger()
-
     def look_up_scrubbed(self, *args):
         """Look up all new scrubbed terms on cambridge dictionary and phrasefinder website. store results in cache variables"""
 
         scrubbed = [x.strip() for x in self.scrubbed.toPlainText().strip().split("\n")]
 
-        for s in scrubbed:
-            # look up on cambridge all terms that haven't yet been looked up
-            if s not in self.cambridge_available_cache:
-
-                log(f"looking up '{s}' on cambridge dictionary...", end="\t")
-                html = load_url('https://dictionary.cambridge.org/de/worterbuch/englisch/' + s, True).text
-
-                if cambridge.has_results(html):
-                    self.cambridge_available_cache[s] = html
-                    log("found", color="green", start="")
-                else:
-                    self.cambridge_available_cache[s] = False
-                    log("not found", color="red", start="")
-
-            if s not in self.phrasefinder_cache:
-                # look up on phrasefinder
-
-                log(f"looking up '{s}' on phrasefinder...", end="\t")
-                i = get_phrasefinder(s)
-
-                self.phrasefinder_cache[s] = i
-                log(f"{i} occurrences", color="green", start="")
-
-        # rebuild the cambridge_available textedit content
-        self.cambridge_ipa.setText("<br>".join([self.get_ipa(s) if s in self.cambridge_available_cache and self.cambridge_available_cache[s] else "XX" for s in scrubbed]))
+        self.cambridge_ipa.setText("<br>".join([self.profile.get_ipa(s) or "XXX" for s in scrubbed]))
 
         # rebuild the phrasefinder_rank textedit content
-        self.phrasefinder_rank.setText("\n".join([str(int(ceil(self.phrasefinder_cache[s] / 1000))).zfill(6) for s in scrubbed]))
+        self.phrasefinder_rank.setText("\n".join([str(self.profile.get_prevalence_rate(s)).zfill(6) for s in scrubbed]))
 
-        # set both 'indicator' textedits to the corrent line spacing
+        # set both 'indicator' textedits to the correct line spacing
         self.set_line_height(self.phrasefinder_rank)
         self.set_line_height(self.scrubbed)
 
@@ -263,9 +253,14 @@ class CorrectScrubbingOutput(QDialog):
             return american_part[american_part.find('<span class="ipa dipa lpr-2 lpl-1">'):american_part.find("/</span></span>")]
 
     def done_(self):
-        """Extract original words and corrected scrubbed versions and return them to parent class to create Anki cards"""
-
         self.close()
         original = [x.strip() for x in self.original_words.toPlainText().split("\n")]
         scrubbed = [x.strip() for x in self.scrubbed.toPlainText().split("\n")]
-        self.parent.scrubbing_edited(self.words_with_tabs, dict([(original[x], scrubbed[x]) for x in range(len(original))]), self.cambridge_available_cache)
+
+        mapped = dict([(original[i], scrubbed[i]) for i in range(len(original))])
+
+        for word in self.profile.words_being_imported:
+            word.learning_scrubbed = mapped[word.learning]
+
+        # .parent.scrubbing_edited(self.words_with_tabs, dict([(original[x], scrubbed[x]) for x in range(len(original))]), self.cambridge_available_cache)
+        self.profile.create_cards()

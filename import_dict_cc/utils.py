@@ -6,7 +6,7 @@ import socket
 import os
 import urllib.parse
 import urllib.request
-from .lib import termcolor
+from lib import termcolor
 import datetime
 from aqt import mw
 import anki.consts
