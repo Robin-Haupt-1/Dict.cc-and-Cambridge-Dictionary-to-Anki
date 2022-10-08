@@ -83,8 +83,8 @@ class EditNewWordsDialog(QDialog):
 
         [set_line_height(x) for x in [self.new_words, self.word_groups]]
         self.word_groups.verticalScrollBar().setValue(self.new_words.verticalScrollBar().value())
-        #print(self.new_words.verticalScrollBar().value())
-        #print(position)
+        # print(self.new_words.verticalScrollBar().value())
+        # print(position)
 
     def get_words(self):
         return self.new_words.toPlainText().strip()
