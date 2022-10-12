@@ -1,5 +1,7 @@
-from aqt.qt import QDialog, QGridLayout, QTextEdit, QScrollBar, QPushButton
-from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
+#from aqt.qt import QDialog, QGridLayout, QTextEdit, QScrollBar, QPushButton
+#from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 from PyQt6 import QtGui
 from aqt.utils import showInfo
@@ -38,19 +40,19 @@ class EditNewWordsDialog(QDialog):
 
         # Textedit indicating how the program groups words based on their english side. To help with refactoring them into appropriate groups
         self.word_groups = QTextEdit()
-        self.word_groups.setLineWrapMode(QTextEdit.NoWrap)
+        self.word_groups.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.word_groups.setMaximumWidth(40)
         self.word_groups.setText(numbers)
-        self.word_groups.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.word_groups.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.word_groups_scrollbar: QScrollBar = self.word_groups.verticalScrollBar()
         self.word_groups.setFont(font)
         self.word_groups.setEnabled(False)
 
         # Textedit with new english and german words, seperated by ~
         self.new_words = QTextEdit()
-        self.new_words.setLineWrapMode(QTextEdit.NoWrap)
+        self.new_words.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.new_words.setText("\n".join([word.unprocessed_string.replace("\t", "       ~       ") for word in profile.words_being_imported_raw]))
-        self.new_words.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.new_words.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.new_words_scrollbar: QScrollBar = self.new_words.verticalScrollBar()
         self.new_words_scrollbar.valueChanged.connect(self.on_scroll)
         self.new_words.setFont(font)
@@ -146,17 +148,17 @@ class CorrectScrubbingOutput(QDialog):
 
         # Textedit containing original, full-length terms
         self.original_words = QTextEdit()
-        self.original_words.setLineWrapMode(QTextEdit.NoWrap)
+        self.original_words.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.original_words.setMaximumWidth(250)
         self.original_words.setText("\n".join([word.learning for word in self.profile.words_being_imported]))
-        self.original_words.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.original_words.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.original_words.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.original_words.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.original_words.setFont(font)
         self.original_words.setEnabled(False)
 
         # Textedit containing the automatically scrubbed version of the original words and allowing user to edit them
         self.scrubbed = QTextEdit()
-        self.scrubbed.setLineWrapMode(QTextEdit.NoWrap)
+        self.scrubbed.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.scrubbed.setMinimumWidth(250)
         self.scrubbed.setText(("\n".join([self.profile.scrub_word(word.learning) for word in self.profile.words_being_imported])))
         self.scrubbed.verticalScrollBar().valueChanged.connect(self.on_scroll)
@@ -165,22 +167,22 @@ class CorrectScrubbingOutput(QDialog):
 
         # Textedit indicating whether the term can be found on cambridge dictionary (found IPA if yes, otherwise 'XX')
         self.cambridge_ipa = QTextEdit()
-        self.cambridge_ipa.setLineWrapMode(QTextEdit.NoWrap)
+        self.cambridge_ipa.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.cambridge_ipa.setMinimumWidth(250)
         self.cambridge_ipa.setText("")
-        self.cambridge_ipa.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.cambridge_ipa.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.cambridge_ipa.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.cambridge_ipa.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.cambridge_ipa.setFont(font)
         self.cambridge_ipa.setEnabled(False)
 
         # Textedit showing how often the term occurs in the phrasefinder corpus
         self.phrasefinder_rank = QTextEdit()
-        self.phrasefinder_rank.setLineWrapMode(QTextEdit.NoWrap)
+        self.phrasefinder_rank.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.phrasefinder_rank.setMaximumWidth(100)
-        self.phrasefinder_rank.setAlignment(Qt.AlignRight)
+        self.phrasefinder_rank.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.phrasefinder_rank.setText("")
-        self.phrasefinder_rank.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.phrasefinder_rank.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.phrasefinder_rank.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.phrasefinder_rank.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.phrasefinder_rank.setFont(font)
         self.phrasefinder_rank.setEnabled(False)
 
