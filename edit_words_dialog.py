@@ -1,18 +1,15 @@
-#from aqt.qt import QDialog, QGridLayout, QTextEdit, QScrollBar, QPushButton
-#from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
+# from aqt.qt import QDialog, QGridLayout, QTextEdit, QScrollBar, QPushButton
+# from PyQt6.QtGui import QCloseEvent, QFont, QTextBlockFormat, QTextCursor
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 from PyQt6 import QtGui
 from aqt.utils import showInfo
-from utils import load_url, wait_for_internet_connection, log, DebounceTimer
 from aqt import mw
 from math import ceil
-from constants import *
+from .constants import WordBeingImported
 from collections import defaultdict
-
-
-
+from .utils import *
 numbers = "\n".join([str(x) for x in range(100)])
 
 
@@ -33,7 +30,7 @@ class EditNewWordsDialog(QDialog):
     profile = None
 
     def __init__(self, profile):
-        #super(EditNewWordsDialog, self).__init__()
+        super(EditNewWordsDialog, self).__init__()
         self.profile = profile
 
         # set up font
@@ -98,7 +95,7 @@ class EditNewWordsDialog(QDialog):
 
         # extract all unique english words and assign them a number
         word_groups = {}  # all unique words as keys, their number as values
-        english_words = [word.split(EDIT_WORDS_SEPERATOR_BASIC)[0].strip() for word in self.get_words().split("\n")]
+        english_words = [word.split("~")[0].strip() for word in self.get_words().split("\n")]
 
         # TODO defaultdict
         for english_word in english_words:

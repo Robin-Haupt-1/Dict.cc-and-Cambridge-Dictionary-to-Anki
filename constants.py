@@ -4,11 +4,10 @@ from os.path import join
 from dataclasses import dataclass
 from aqt.qt import QAction
 from aqt.utils import showInfo, tooltip
-from edit_words_dialog import EditNewWordsDialog
 from aqt import mw
 from aqt import gui_hooks
 import datetime
-from utils import *
+from .utils import *
 from anki.consts import *
 from functools import lru_cache
 import math
@@ -35,6 +34,8 @@ class WordBeingImported:
 @dataclass
 class NewCrawledWordFileToDelete:
     filename: str
+    
+from .edit_words_dialog import EditNewWordsDialog
 
 
 class Profile:
@@ -331,7 +332,3 @@ class FrenchProfile(Profile):
     dict_cc_list_id = "1031152-FR-DE-59911"
     already_imported_words_folder: str = None
     new_crawled_words_folder: str = None
-
-
-EDIT_WORDS_SEPERATOR = "    ~    "
-EDIT_WORDS_SEPERATOR_BASIC = "~"
