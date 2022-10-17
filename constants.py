@@ -58,6 +58,7 @@ class Profile:
         print("init on Profile")
 
     def start_import(self):
+        self.words_being_imported_raw=[]
         self.new_crawled_words_to_delete = [NewCrawledWordFileToDelete(file.path) for file in os.scandir(self.new_crawled_words_folder)]
 
         already_imported_words = self._load_imported_words()
