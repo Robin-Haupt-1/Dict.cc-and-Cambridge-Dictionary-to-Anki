@@ -4,6 +4,7 @@ import importlib
 import os
 import sys
 from aqt import mw
+from aqt.qt import qtmajor
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 print(sys.path)

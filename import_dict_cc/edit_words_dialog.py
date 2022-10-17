@@ -11,6 +11,8 @@ from math import ceil
 from constants import *
 from collections import defaultdict
 
+
+
 numbers = "\n".join([str(x) for x in range(100)])
 
 
@@ -31,7 +33,7 @@ class EditNewWordsDialog(QDialog):
     profile = None
 
     def __init__(self, profile):
-        super(EditNewWordsDialog, self).__init__()
+        #super(EditNewWordsDialog, self).__init__()
         self.profile = profile
 
         # set up font

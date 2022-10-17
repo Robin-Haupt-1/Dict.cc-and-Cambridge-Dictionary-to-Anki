@@ -6,19 +6,15 @@ print(sys.path)
 
 import constants
 import edit_words_dialog
-import test
 import utils
 
 importlib.reload(constants)
 importlib.reload(edit_words_dialog)
-importlib.reload(test)
 importlib.reload(utils)
 
-importlib.reload(constants)
 
 import constants
 import edit_words_dialog
-import test
 import utils
 
 from aqt.qt import QAction
@@ -67,9 +63,3 @@ def add_menu_items():
     profiles: [constants.Profile] = [constants.EnglishProfile(), constants.FrenchProfile()]
     for profile in profiles:
         add_action_items(profile)
-
-    # add menu option to import new cards
-    options_action = QAction(f"Test", mw)
-    options_action.triggered.connect(lambda _, o=mw: test.test())
-    mw.form.menuTools.addAction(options_action)
-    currently_added_actions.append(options_action)
