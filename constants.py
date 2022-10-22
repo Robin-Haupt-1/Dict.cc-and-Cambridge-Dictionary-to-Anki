@@ -14,8 +14,8 @@ import math
 
 print("import constants")
 
-BASE_FOLDER = r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer"
 MEDIA_FOLDER = r"/home/robin/.local/share/Anki2/Benutzer 1/collection.media"
+BASE_FOLDER = r"/hdd/Software Engineering/.files/2021-09-23 Dict.cc und Cambridge Importer"
 
 
 @dataclass
@@ -29,12 +29,14 @@ class WordBeingImported:
     learning: str = None
     familiar: [str] = None
     learning_scrubbed: str = None
+    both_front: str = ""
 
 
 @dataclass
 class NewCrawledWordFileToDelete:
     filename: str
-    
+
+
 from .edit_words_dialog import EditNewWordsDialog
 
 
@@ -58,7 +60,7 @@ class Profile:
         print("init on Profile")
 
     def start_import(self):
-        self.words_being_imported_raw=[]
+        self.words_being_imported_raw = []
         self.new_crawled_words_to_delete = [NewCrawledWordFileToDelete(file.path) for file in os.scandir(self.new_crawled_words_folder)]
 
         already_imported_words = self._load_imported_words()
@@ -130,6 +132,7 @@ class Profile:
         log("Creating cards")
 
         for word in self.words_being_imported:
+            log(word)
 
             needs_image = False
             reverse_card = True
@@ -147,8 +150,14 @@ class Profile:
 
             log(f"Importing {word.learning} - {' - '.join(word.familiar)}")
 
-            fields = {"Learning": word.learning, "Bild": "needsimage" if needs_image else "", "Audio": "", "IPA": "", "Häufigkeit": str(self.get_prevalence_rate(word.learning_scrubbed)).zfill(6), "Learning scrubbed": word.learning_scrubbed,
-                      "reverse card disabled": "3" if not reverse_card else ""}
+            fields = {"Learning": word.learning,
+                      "Bild": "needsimage" if needs_image else "",
+                      "Audio": "",
+                      "IPA": "",
+                      "Häufigkeit": str(self.get_prevalence_rate(word.learning_scrubbed)).zfill(6),
+                      "Learning scrubbed": word.learning_scrubbed,
+                      "reverse card disabled": "3" if not reverse_card else "",
+                      "both-front": word.both_front}
 
             # Assign familiar words to their fields
             for i, x in enumerate(word.familiar[:10]):
@@ -268,7 +277,7 @@ class EnglishProfile(Profile):
         log(f"No Cambridge definition found for {word_scrubbed}", color="red")
 
     @lru_cache
-    def get_ipa(self, word: str) -> str|None:
+    def get_ipa(self, word: str) -> str | None:
         html = self._cambridge_html(word)
         if not html or any(html.find(x) == -1 for x in ["us dpron-i", 'type="audio/ogg" src="', '<span class="ipa dipa lpr-2 lpl-1">']):
             return

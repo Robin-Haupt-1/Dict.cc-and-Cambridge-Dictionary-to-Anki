@@ -10,6 +10,7 @@ from math import ceil
 from .constants import WordBeingImported
 from collections import defaultdict
 from .utils import *
+
 numbers = "\n".join([str(x) for x in range(100)])
 
 
@@ -101,7 +102,7 @@ class EditNewWordsDialog(QDialog):
         for english_word in english_words:
             if english_word not in word_groups:
                 word_groups[english_word] = len(word_groups.keys()) + 1
-
+ 
         word_group_content = "\n".join(["----" if x % 2 == 0 else "////" for x in [word_groups[y] for y in english_words]])
         self.word_groups.setText(word_group_content)
         [set_line_height(x) for x in [self.word_groups]]
@@ -118,7 +119,10 @@ class EditNewWordsDialog(QDialog):
             learning = learning.strip()
 
             if learning not in words_with_translations:
-                words_with_translations[learning] = WordBeingImported(learning=learning, familiar=[])
+                words_with_translations[learning] = WordBeingImported(learning=learning, familiar=[], both_front="")
+            if "~" in familiar:
+                familiar, both_front = familiar.split("~", 1)
+                words_with_translations[learning].both_front=both_front
             words_with_translations[learning].familiar.append(familiar)
 
         self.profile.words_being_imported = list(words_with_translations.values())

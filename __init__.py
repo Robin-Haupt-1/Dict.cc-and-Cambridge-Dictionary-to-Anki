@@ -2,7 +2,8 @@ from .constants import *
 from .edit_words_dialog import *
 from .utils import *
 
-from aqt.qt import QAction
+#from aqt.qt import QAction
+from PyQt6.QtGui import QAction 
 from aqt import gui_hooks
 import importlib
 import os
