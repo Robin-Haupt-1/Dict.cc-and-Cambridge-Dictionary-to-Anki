@@ -283,7 +283,9 @@ class EnglishProfile(Profile):
             return
         else:
             american_part = html[html.find("us dpron-i"):]
-            return american_part[american_part.find('<span class="ipa dipa lpr-2 lpl-1">'):american_part.find("/</span></span>")]
+            if not "</span>/</span></span>" in american_part:
+                return
+            return american_part[american_part.find('<span class="ipa dipa lpr-2 lpl-1">'):american_part.find("</span>/</span></span>")] 
 
     @lru_cache
     def get_prevalence_rate(self, word: str) -> int:
