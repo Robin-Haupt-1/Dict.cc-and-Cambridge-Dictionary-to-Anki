@@ -1,9 +1,9 @@
 from .constants import *
+from .profiles import Profile, FrenchProfile, EnglishProfile
 from .edit_words_dialog import *
 from .utils import *
-
-#from aqt.qt import QAction
-from PyQt6.QtGui import QAction 
+from .profiles import *
+from PyQt6.QtGui import QAction
 from aqt import gui_hooks
 import importlib
 import os
@@ -13,8 +13,8 @@ from aqt import mw
 import_task = None
 print("loaded module")
 
- 
-def start_import(profile: constants.Profile):
+
+def start_import(profile: Profile):
     global import_task
     import_task = profile.start_import()
 
@@ -22,7 +22,7 @@ def start_import(profile: constants.Profile):
 currently_added_actions: [QAction] = []
 
 
-def add_action_items(profile: constants.Profile):
+def add_action_items(profile: Profile):
     # add menu option to import new cards
     options_action = QAction(f"Import from Cambridge ({profile.language})...", mw)
     options_action.triggered.connect(lambda _, o=mw: start_import(profile))
@@ -46,7 +46,7 @@ def remove_menu_items():
 
 def add_menu_items():
     # reload()
-    profiles: [constants.Profile] = [constants.EnglishProfile(), constants.FrenchProfile()]
+    profiles: [Profile] = [EnglishProfile(), FrenchProfile()]
     for profile in profiles:
         add_action_items(profile)
 
